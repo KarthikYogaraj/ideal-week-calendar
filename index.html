@@ -226,11 +226,12 @@
     </div>
   </header>
 
-  <p>Template preview only · Europe/London · starting weeks are not set. Tuesday and Thursday choices are independent.</p>
+  <p>Template preview · Europe/London · two-week pattern anchored to Monday 19 October 2026. Friday gym times remain tentative. The current London week sets the default when the page loads; use the toggle for a manual preview.</p>
   <div class="controls">
-    <label class="switch"><input type="checkbox" role="switch" id="tuesday" aria-describedby="tuesday-state"><span>Tuesday date night · <span class="state" id="tuesday-state">Build / offline</span></span></label>
-    <label class="switch"><input type="checkbox" role="switch" id="thursday" aria-describedby="thursday-state"><span>Men’s Thursday · <span class="state" id="thursday-state">Regular gym</span></span></label>
+    <label class="switch"><input type="checkbox" role="switch" id="tuesday" aria-describedby="tuesday-state"><span>Tuesday date-night week · <span class="state" id="tuesday-state"></span></span></label>
   </div>
+  <p id="pattern"></p>
+  <p>Early Friday gym conflicts with protected outreach by 15 minutes (13:15–13:30). Both actual ranges remain visible in daily details; the ledger counts this time once as a conflict.</p>
   <div class="legend" id="legend"></div>
 
   <div class="gridscroll" id="gridscroll">
@@ -251,12 +252,12 @@
   <div class="agenda" id="agenda"></div>
   <div class="rules">
     <h2>Shape of the week</h2>
-    <div class="rule"><b>Morning deep work</b><p>08:00–10:30 Monday–Friday: learning, audits, build plans and review.</p></div>
-    <div class="rule"><b>Protected outreach</b><p>11:30–13:30 Monday–Thursday. Minimum 100 per day across your network, LinkedIn, Instagram and Facebook. No meetings. Demo slots fall back to outreach.</p></div>
-    <div class="rule"><b>Care and training</b><p>Care for Mireya and family as shown; cook 16:30–17:30 while caring Monday. Tuesday includes vacuuming and laundry. Wednesday is a gym rest day; bathroom chores use a proposed slot.</p></div>
-    <div class="rule"><b>Leave room to agree</b><p>Friday webinars are experimental. Jennifer’s half-day timing, Friday demos/audits and date-night start are not fixed. Saturday evening is unscheduled. Sunday is full rest for both, with no work.</p></div>
+    <div class="rule"><b>Morning deep work</b><p>08:00–10:30 Monday–Friday: learning, audits, build plans and review. Wednesday webinars / booking run 10:30–13:00.</p></div>
+    <div class="rule"><b>Protected outreach</b><p>11:30–13:30 Monday, Tuesday, Thursday and Friday. Minimum 100 per day across your network, LinkedIn, Instagram and Facebook. No meetings. Early Friday gym has a visible 15-minute conflict.</p></div>
+    <div class="rule"><b>Care and training</b><p>Monday cooking 16:30–17:30; Tuesday care and chores before boxing (class 18:15–19:45). Wednesday bathroom chores 15:30–16:30. Thursday gym every week; laundry and kitchen chores can overlap household care.</p></div>
+    <div class="rule"><b>Two-week pattern</b><p>Men’s Wednesday and early Friday gym alternate with Tuesday date night and late Friday gym. Friday gym remains tentative. Friday date night is 20:30–23:30. Saturday evening is unscheduled. Sunday is rest around church, groceries and weekly planning.</p></div>
   </div>
-  <div class="colophon"><h2>The Ideal <span class="accent">Week</span></h2><p><strong>Wake 07:00 · sleep 23:30.</strong> A weekly template to review together. The toggles preview each choice; they do not assign a dated rotation.</p></div>
+  <div class="colophon"><h2>The Ideal <span class="accent">Week</span></h2><p><strong>Wake 07:00 · sleep 23:30.</strong> A weekly template to review together. The toggle previews the anchored two-week pattern; live status follows the selected template.</p></div>
   <footer><span>v3 · October 2026 · London sun (<span id="sun">…</span>)</span><span>Selected template · 115.5 waking hours</span></footer>
 </div>
 
@@ -264,7 +265,7 @@
   const CATS = {
     quiet:{name:'Morning / quiet',v:'--c-quiet'}, deep:{name:'Deep work',v:'--c-deep'},
     lunch:{name:'Meals',v:'--c-lunch'}, outreach:{name:'Outreach',v:'--c-boost'},
-    mixed:{name:'Mixed work',v:'--c-boost'}, demos:{name:'Demos / sales',v:'--c-boost'}, social:{name:'Social',v:'--c-boost'},
+    webinar:{name:'Webinars / booking',v:'--c-boost'}, conflict:{name:'Outreach / gym conflict',v:'--c-gap'}, church:{name:'Church',v:'--c-church'}, errands:{name:'Groceries',v:'--c-quiet'}, planning:{name:'Weekly planning',v:'--c-deep'}, demos:{name:'Demos / sales',v:'--c-boost'}, social:{name:'Social',v:'--c-boost'},
     build:{name:'Build / offline',v:'--c-deep'}, train:{name:'Training',v:'--c-train'},
     family:{name:'Care / family',v:'--c-family'}, date:{name:'Date night',v:'--c-family'},
     men:{name:'Men’s group',v:'--c-church'}, chores:{name:'Chores',v:'--c-quiet'},
@@ -278,30 +279,42 @@
     ['11:30','13:30','outreach','Outreach','100/day minimum · network / LinkedIn / Instagram / Facebook · no meetings']];
   const care = ['16:30','20:30','family','Care + family','Care for Mireya'];
   const build = ['20:30','23:30','build','Build / offline'];
-  function makeWeek(tuesday='build', thursday='gym') {
-    const demos = ['13:30','15:30','demos','Demos / meetings / sales','Fallback: outreach'];
+  function makeWeek(dateNight=false) {
+    const demos=['13:30','15:30','demos','Demos / meetings / sales','Fallback: outreach'];
+    const fridayCare=(start,end)=>[start,end,'provisional','Jennifer’s half day / family','Half-day start/end and care coverage to agree · bath 17:00–17:30'];
     return [
       ['Monday',[...base,demos,['15:30','16:30','train','Gym'],[...care.slice(0,4),'Cook 16:30–17:30 while caring for Mireya'],build]],
       ['Tuesday',[...base,['13:30','15:00','demos','Demos / meetings / sales','Fallback: outreach'],
-        ['15:00','18:00','family','Care + chores','Care for Mireya · vacuum · laundry'],['18:00','20:00','train','Boxing'],
-        ['20:00','20:30','lunch','Dinner'], tuesday==='date' ? ['20:30','23:30','date','Fortnightly date night','Template choice · starting week not set'] : build]],
-      ['Wednesday',[...base,demos,['15:30','16:30','provisional','Bathroom chores (proposed)','Proposed slot · gym rest day'],care,build]],
-      ['Thursday',[...base,demos,...(thursday==='men' ? [
-        ['15:30','16:30','deep','Extra work'],['16:30','18:00','family','Care for Mireya'],
-        ['18:00','21:30','men','Men’s group','Mireya joins for part'],['21:30','23:30','build','Build / offline']
-      ] : [['15:30','16:30','train','Gym'],care,build])]],
-      ['Friday',[...morning,['10:30','12:30','provisional','Webinars (experimental)'],
-        ['12:30','14:00','provisional','Jennifer’s half day / family','Timing to agree · demos / audits not fixed'],
-        ['14:00','15:00','provisional','Gym (provisional)'],
-        ['15:00','20:30','provisional','Jennifer’s half day / family','Timing to agree · demos / audits not fixed'],
-        ['20:30','23:30','provisional','Friday date night','Placeholder · exact start time provisional']]],
+        ['15:00','18:00','family','Care + chores','Mireya · vacuum 15:00–16:00 · laundry 15:30–16:00 · bath 17:30–18:00'],
+        ['18:00','20:00','train','Boxing + travel','Class 18:15–19:45'],['20:00','20:30','lunch','Dinner'],
+        dateNight?['20:30','23:30','date','Fortnightly date night']:build]],
+      ['Wednesday',[...morning,['10:30','13:00','webinar','Webinars / booking'],['13:00','13:30','lunch','Lunch'],demos,
+        ['15:30','16:30','chores','Bathroom chores'],...(dateNight?[care,build]:[
+          ['16:30','18:00','family','Care for Mireya'],['18:00','21:30','men','Men’s group','Mireya joins for part'],['21:30','23:30','build','Build / offline']])]],
+      ['Thursday',[...base,demos,['15:30','16:30','train','Gym'],[...care.slice(0,4),'Care for Mireya · laundry 16:30–17:00 · household kitchen chore 16:30–17:30 may overlap Jennifer’s time'],build]],
+      ['Friday',[...base.slice(0,-1),...(dateNight?[
+        base.at(-1),fridayCare('13:30','15:45'),['15:45','17:00','provisional','Gym (tentative)','Alternating Friday gym 15:45–17:00'],fridayCare('17:00','20:30')
+      ]:[
+        ['11:30','13:15','outreach','Outreach','Protected actual range 11:30–13:30 · 100/day minimum · no meetings'],
+        ['13:15','13:30','conflict','Outreach / gym overlap','Outreach 11:30–13:30 overlaps tentative gym 13:15–14:30 by 15 minutes'],
+        ['13:30','14:30','provisional','Gym (tentative)','Gym starts 13:15 · actual range 13:15–14:30; first 15 minutes conflict with outreach'],fridayCare('14:30','20:30')
+      ]),['20:30','23:30','date','Friday date night']]],
       ['Saturday',[
         ['07:00','07:30','quiet','Ready + Mireya'],['07:30','08:00','quiet','Quiet time'],
-        ['08:00','08:30','build','Check builds / calendar','Check overnight builds'],['08:30','10:30','train','Boxing'],
-        ['10:30','11:30','lunch','Lunch'],['11:30','16:30','mixed','Social / outreach / demos','Async builds'],
-        ['16:30','23:30','provisional','Unscheduled']]],
-      ['Sunday',[['07:00','23:30','rest','Full rest for both','No work']]]
+        ['08:00','08:45','build','Check builds / calendar','Check overnight builds'],['08:45','10:15','train','Boxing'],
+        ['10:15','10:30','provisional','Unassigned transition'],['10:30','11:30','lunch','Lunch'],
+        ['11:30','16:30','social','Social media shooting'],['16:30','23:30','provisional','Unscheduled']]],
+      ['Sunday',[
+        ['07:00','09:30','rest','Rest for both'],['09:30','11:00','church','Church'],['11:00','11:30','rest','Rest'],
+        ['11:30','12:30','errands','Groceries'],['12:30','20:30','rest','Rest for both'],
+        ['20:30','21:00','planning','Weekly planning'],['21:00','23:30','rest','Rest for both']]]
     ];
+  }
+  // Calendar-day arithmetic avoids a DST change shifting the alternating week.
+  function patternForDate(date) {
+    const parts=Object.fromEntries(new Intl.DateTimeFormat('en-GB',{timeZone:'Europe/London',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(date).map(p=>[p.type,p.value]));
+    const days=Math.round((Date.UTC(+parts.year,+parts.month-1,+parts.day)-Date.UTC(2026,9,19))/86400000);
+    return ((Math.floor(days/7)%2)+2)%2===1;
   }
   let WEEK;
   const DAY_START=7*60, DAY_END=23*60+30, HOUR_PX=64;
@@ -316,10 +329,10 @@
   document.getElementById('legend').innerHTML=Object.values(CATS).map(c=>`<span style="--sw:var(${c.v})"><i></i>${c.name}</span>`).join('');
   let renderedDay;
   function render() {
-    const dateNight=document.getElementById('tuesday').checked, mensThursday=document.getElementById('thursday').checked;
-    WEEK=makeWeek(dateNight?'date':'build',mensThursday?'men':'gym');
-    document.getElementById('tuesday-state').textContent=dateNight?'Date night':'Build / offline';
-    document.getElementById('thursday-state').textContent=mensThursday?'Men’s Thursday':'Regular gym';
+    const dateNight=document.getElementById('tuesday').checked;
+    WEEK=makeWeek(dateNight);
+    document.getElementById('tuesday-state').textContent=dateNight?'Date night / late Friday gym':'Build / men’s Wednesday / early Friday gym';
+    document.getElementById('pattern').textContent=dateNight?'Selected pattern anchored to week of 26 October 2026 · Tue 27 date night · Fri 30 gym 15:45–17:00 (tentative). Repeats fortnightly.':'Selected pattern anchored to week of 19 October 2026 · Tue 20 build · Wed 21 men’s group · Fri 23 gym 13:15–14:30 (tentative). Repeats fortnightly.';
     const today=londonParts(new Date()).day;
     renderedDay=today;
     const VIEW=Array.from({length:7},(_,k)=>{const i=(today+k)%7;return {i,name:WEEK[i][0],blocks:WEEK[i][1]};});
@@ -330,7 +343,7 @@
     cols.innerHTML=gutter+VIEW.map((v,k)=>`<div class="daycol${k===0?' today':''}" style="--hour:${HOUR_PX}px;height:${px(DAY_END)}px">`+v.blocks.map(([s,e,cat,label,det])=>{
       const h=(toMin(e)-toMin(s))/60*HOUR_PX;
       const full=`${v.name} ${s}–${e}: ${label}${det?' — '+det:''}`;
-      return `<div tabindex="0" title="${full}" aria-label="${full}" class="blk${h<=32?' compact':''}${cat==='provisional'?' gapblk':''}" data-day="${v.i}" data-s="${toMin(s)}" data-e="${toMin(e)}" style="--c:var(${CATS[cat].v});top:${px(toMin(s))}px;height:${h-3}px"><div class="cat"><span>${label}</span><small>${s}–${e}</small></div>${det&&h>=62?`<div class="det">${det}</div>`:''}</div>`;
+      return `<div tabindex="0" title="${full}" aria-label="${full}" class="blk${h<=32?' compact':''}${cat==='provisional'||cat==='conflict'?' gapblk':''}" data-day="${v.i}" data-s="${toMin(s)}" data-e="${toMin(e)}" style="--c:var(${CATS[cat].v});top:${px(toMin(s))}px;height:${h-3}px"><div class="cat"><span>${label}</span><small>${s}–${e}</small></div>${det&&h>=62?`<div class="det">${det}</div>`:''}</div>`;
     }).join('')+'</div>').join('');
     const totals={};
     WEEK.forEach(([,bs])=>bs.forEach(([s,e,c])=>totals[c]=(totals[c]||0)+(toMin(e)-toMin(s))/60));
@@ -339,6 +352,7 @@
     document.getElementById('agenda').innerHTML='<h2>Daily details</h2>'+WEEK.map(([name,bs])=>`<details><summary>${name}</summary><ul>${bs.map(([s,e,c,label,det])=>`<li><strong>${s}–${e} · ${label}</strong>${det?' — '+det:''}</li>`).join('')}</ul></details>`).join('');
   }
   document.querySelectorAll('.switch input').forEach(el=>el.addEventListener('change',()=>{render();tick();}));
+  document.getElementById('tuesday').checked=patternForDate(new Date());
   render();
 
   // sunrise/sunset (NOAA/SunCalc approximation) — theme follows the London sun
