@@ -231,6 +231,8 @@
     <label class="switch"><input type="checkbox" role="switch" id="tuesday" aria-describedby="tuesday-state"><span>Tuesday date-night week · <span class="state" id="tuesday-state"></span></span></label>
   </div>
   <p id="pattern"></p>
+  <p><strong>Early start: 04:00 wake, build / offline 04:30–07:30 Monday–Saturday. Four required early starts and two flexible mornings each week. Flexible mornings follow late evenings: Thursday and Saturday in men’s week; Wednesday and Saturday in date-night week.</strong> Target sleep 21:00–04:00 = 7 hours; latest 21:30 = 6.5 hours. Morning Mireya / family time at 07:30–08:00 is an assumption.</p>
+  <p><strong>Keep the evenings; flex the next morning.</strong> Date nights finish 23:30; men’s group finishes 21:30. Flexible mornings have no 04:00 obligation and no committed build hours. Choose sleep or optional build when rested. Flexible time is separate from planned sleep in the ledger.</p>
   <p>Early Friday gym conflicts with protected outreach by 15 minutes (13:15–13:30). Both actual ranges remain visible in daily details; the ledger counts this time once as a conflict.</p>
   <div class="legend" id="legend"></div>
 
@@ -244,8 +246,8 @@
   <noscript><p style="color:var(--muted)">Enable JavaScript to render the live grid.</p></noscript>
 
   <div class="ledger">
-    <h2>Where the 115.5 waking hours go</h2>
-    <p class="note">07:00–23:30 each day · sleep 23:30–07:00. Provisional and unspecified time stays separate from protected commitments.</p>
+    <h2>Where the 168 hours go</h2>
+    <p class="note">Full 24-hour ledger, including sleep; grid shows 04:00–24:00. Provisional and unspecified time stays separate from protected commitments.</p>
     <div id="ledger"></div>
   </div>
 
@@ -255,15 +257,15 @@
     <div class="rule"><b>Morning deep work</b><p>08:00–10:30 Monday–Friday: learning, audits, build plans and review. Wednesday webinars / booking run 10:30–13:00.</p></div>
     <div class="rule"><b>Protected outreach</b><p>11:30–13:30 Monday, Tuesday, Thursday and Friday. Minimum 100 per day across your network, LinkedIn, Instagram and Facebook. No meetings. Early Friday gym has a visible 15-minute conflict.</p></div>
     <div class="rule"><b>Care and training</b><p>Monday cooking 16:30–17:30; Tuesday care and chores before boxing (class 18:15–19:45). Wednesday bathroom chores 15:30–16:30. Thursday gym every week; laundry and kitchen chores can overlap household care.</p></div>
-    <div class="rule"><b>Two-week pattern</b><p>Men’s Wednesday and early Friday gym alternate with Tuesday date night and late Friday gym. Friday gym remains tentative. Friday date night is 20:30–23:30. Saturday evening is unscheduled. Sunday is rest around church, groceries and weekly planning.</p></div>
+    <div class="rule"><b>Two-week pattern</b><p>Men’s Wednesday and early Friday gym alternate with Tuesday date night and late Friday gym. Friday gym remains tentative. Friday date night is 20:30–23:30; Saturday morning is flexible. Ordinary evenings wind down 20:30–21:00, then sleep. Sunday has no early build. Saturday evening is unscheduled. Sunday is rest around church, groceries and weekly planning.</p></div>
   </div>
-  <div class="colophon"><h2>The Ideal <span class="accent">Week</span></h2><p><strong>Wake 07:00 · sleep 23:30.</strong> A weekly template to review together. The toggle previews the anchored two-week pattern; live status follows the selected template.</p></div>
-  <footer><span>v3 · October 2026 · London sun (<span id="sun">…</span>)</span><span>Selected template · 115.5 waking hours</span></footer>
+  <div class="colophon"><h2>The Ideal <span class="accent">Week</span></h2><p><strong>Wake 04:00 · target sleep 21:00.</strong> A weekly template to review together. The toggle previews the anchored two-week pattern; live status follows the selected template.</p></div>
+  <footer><span>v3 · October 2026 · London sun (<span id="sun">…</span>)</span><span>Selected template · 168 hours including sleep</span></footer>
 </div>
 
 <script>
   const CATS = {
-    quiet:{name:'Morning / quiet',v:'--c-quiet'}, deep:{name:'Deep work',v:'--c-deep'},
+    flex:{name:'Flexible morning',v:'--c-gap'}, sleep:{name:'Planned sleep',v:'--c-quiet'}, winddown:{name:'Wind down',v:'--c-quiet'}, quiet:{name:'Morning / quiet',v:'--c-quiet'}, deep:{name:'Deep work',v:'--c-deep'},
     lunch:{name:'Meals',v:'--c-lunch'}, outreach:{name:'Outreach',v:'--c-boost'},
     webinar:{name:'Webinars / booking',v:'--c-boost'}, conflict:{name:'Outreach / gym conflict',v:'--c-gap'}, church:{name:'Church',v:'--c-church'}, errands:{name:'Groceries',v:'--c-quiet'}, planning:{name:'Weekly planning',v:'--c-deep'}, demos:{name:'Demos / sales',v:'--c-boost'}, social:{name:'Social',v:'--c-boost'},
     build:{name:'Build / offline',v:'--c-deep'}, train:{name:'Training',v:'--c-train'},
@@ -282,7 +284,7 @@
   function makeWeek(dateNight=false) {
     const demos=['13:30','15:30','demos','Demos / meetings / sales','Fallback: outreach'];
     const fridayCare=(start,end)=>[start,end,'provisional','Jennifer’s half day / family','Half-day start/end and care coverage to agree · bath 17:00–17:30'];
-    return [
+    const week = [
       ['Monday',[...base,demos,['15:30','16:30','train','Gym'],[...care.slice(0,4),'Cook 16:30–17:30 while caring for Mireya'],build]],
       ['Tuesday',[...base,['13:30','15:00','demos','Demos / meetings / sales','Fallback: outreach'],
         ['15:00','18:00','family','Care + chores','Mireya · vacuum 15:00–16:00 · laundry 15:30–16:00 · bath 17:30–18:00'],
@@ -309,6 +311,29 @@
         ['11:30','12:30','errands','Groceries'],['12:30','20:30','rest','Rest for both'],
         ['20:30','21:00','planning','Weekly planning'],['21:00','23:30','rest','Rest for both']]]
     ];
+    return week.map(([name,blocks],i)=>{
+      const flexible=i===5 || i===(dateNight?2:3);
+      const revised=i===6 ? blocks : [
+        ['04:00','04:30','quiet','Wake / ready / quiet'],
+        ['04:30','07:30','build','Build / offline'],
+        ['07:30','08:00','family','Mireya / family','Assumption: morning care moves here'],
+        ...blocks.filter(b=>b[0]>='08:00')
+      ];
+      const evening=revised.flatMap(b=>b[2]==='build'&&b[0]>='20:30' ? (
+        b[0]==='20:30' ? [['20:30','21:00','winddown','Wind down'],['21:00','24:00','sleep','Sleep','Target 21:00–04:00 = 7 hours; latest 21:30 = 6.5 hours']]
+        : [['21:30','24:00','sleep','Sleep after men’s group','Following Thursday morning is flexible; choose a rested wake time']]
+      ) : [b]);
+      if(i===5) {
+        evening[evening.length-1]=['16:30','20:30','provisional','Unscheduled'];
+        evening.push(['20:30','21:00','winddown','Wind down'],['21:00','24:00','sleep','Sleep']);
+      } else if(i===6) evening[evening.length-1]=['21:00','24:00','sleep','Sleep'];
+      else if(evening.at(-1)[2]==='date') evening.push(['23:30','24:00','sleep','Sleep after date night','Following morning is flexible; 23:30–06:30 gives 7 hours']);
+      const planned=flexible ? [
+        ['04:00','07:30','flex','Flexible morning','After late evening; no 04:00 obligation. Build 04:30–07:30 only if awake and rested; choose wake time. After date night, 23:30→06:30 = 7 hours.'],
+        ...evening.filter(b=>b[0]>='07:30')
+      ] : evening;
+      return [name,[['00:00',i===6?'07:00':'04:00','sleep','Planned sleep'],...planned]];
+    });
   }
   // Calendar-day arithmetic avoids a DST change shifting the alternating week.
   function patternForDate(date) {
@@ -317,7 +342,7 @@
     return ((Math.floor(days/7)%2)+2)%2===1;
   }
   let WEEK;
-  const DAY_START=7*60, DAY_END=23*60+30, HOUR_PX=64;
+  const DAY_START=4*60, DAY_END=24*60, HOUR_PX=64;
   const px=min=>(min-DAY_START)/60*HOUR_PX;
   const toMin=t=>+t.slice(0,2)*60 + +t.slice(3);
   const fmt=(min)=>String(Math.floor(min/60)).padStart(2,'0')+':'+String(min%60).padStart(2,'0');
@@ -331,24 +356,25 @@
   function render() {
     const dateNight=document.getElementById('tuesday').checked;
     WEEK=makeWeek(dateNight);
-    document.getElementById('tuesday-state').textContent=dateNight?'Date night / late Friday gym':'Build / men’s Wednesday / early Friday gym';
-    document.getElementById('pattern').textContent=dateNight?'Selected pattern anchored to week of 26 October 2026 · Tue 27 date night · Fri 30 gym 15:45–17:00 (tentative). Repeats fortnightly.':'Selected pattern anchored to week of 19 October 2026 · Tue 20 build · Wed 21 men’s group · Fri 23 gym 13:15–14:30 (tentative). Repeats fortnightly.';
+    document.getElementById('tuesday-state').textContent=dateNight?'Date night / late Friday gym':'Early build / men’s Wednesday / early Friday gym';
+    document.getElementById('pattern').textContent=dateNight?'Selected pattern anchored to week of 26 October 2026 · Tue 27 date night · Fri 30 gym 15:45–17:00 (tentative). Repeats fortnightly.':'Selected pattern anchored to week of 19 October 2026 · Tue 20 early build · Wed 21 men’s group · Fri 23 gym 13:15–14:30 (tentative). Repeats fortnightly.';
     const today=londonParts(new Date()).day;
     renderedDay=today;
     const VIEW=Array.from({length:7},(_,k)=>{const i=(today+k)%7;return {i,name:WEEK[i][0],blocks:WEEK[i][1]};});
     heads.innerHTML='<div></div>'+VIEW.map((v,k)=>`<div class="dayhead${k===0?' today':''}">${v.name}${k===0?'<span class="tdy">Today</span>':''}</div>`).join('');
     let gutter=`<div class="gutter" style="height:${px(DAY_END)}px">`;
     for(let m=DAY_START;m<=DAY_END;m+=60) gutter+=`<b style="top:${px(m)}px">${fmt(m)}</b>`;
-    gutter+=`<b style="top:${px(DAY_END)}px">23:30</b></div>`;
-    cols.innerHTML=gutter+VIEW.map((v,k)=>`<div class="daycol${k===0?' today':''}" style="--hour:${HOUR_PX}px;height:${px(DAY_END)}px">`+v.blocks.map(([s,e,cat,label,det])=>{
-      const h=(toMin(e)-toMin(s))/60*HOUR_PX;
+    gutter+='</div>';
+    cols.innerHTML=gutter+VIEW.map((v,k)=>`<div class="daycol${k===0?' today':''}" style="--hour:${HOUR_PX}px;height:${px(DAY_END)}px">`+v.blocks.filter(b=>toMin(b[1])>DAY_START).map(([s,e,cat,label,det])=>{
+      const start=Math.max(toMin(s),DAY_START);
+      const h=(toMin(e)-start)/60*HOUR_PX;
       const full=`${v.name} ${s}–${e}: ${label}${det?' — '+det:''}`;
-      return `<div tabindex="0" title="${full}" aria-label="${full}" class="blk${h<=32?' compact':''}${cat==='provisional'||cat==='conflict'?' gapblk':''}" data-day="${v.i}" data-s="${toMin(s)}" data-e="${toMin(e)}" style="--c:var(${CATS[cat].v});top:${px(toMin(s))}px;height:${h-3}px"><div class="cat"><span>${label}</span><small>${s}–${e}</small></div>${det&&h>=62?`<div class="det">${det}</div>`:''}</div>`;
+      return `<div tabindex="0" title="${full}" aria-label="${full}" class="blk${h<=32?' compact':''}${cat==='provisional'||cat==='conflict'||cat==='flex'?' gapblk':''}" data-day="${v.i}" data-s="${toMin(s)}" data-e="${toMin(e)}" style="--c:var(${CATS[cat].v});top:${px(start)}px;height:${h-3}px"><div class="cat"><span>${label}</span><small>${s}–${e}</small></div>${det&&h>=62?`<div class="det">${det}</div>`:''}</div>`;
     }).join('')+'</div>').join('');
     const totals={};
     WEEK.forEach(([,bs])=>bs.forEach(([s,e,c])=>totals[c]=(totals[c]||0)+(toMin(e)-toMin(s))/60));
     const max=Math.max(...Object.values(totals));
-    document.getElementById('ledger').innerHTML=Object.entries(totals).sort((a,b)=>b[1]-a[1]).map(([c,h])=>`<div class="lrow" style="--c:var(${CATS[c].v})"><span class="lname">${CATS[c].name}</span><span class="bar"><i style="--w:${h/max*100}%"></i></span><span class="val">${h}h<small>${Math.round(h/115.5*100)}%</small></span></div>`).join('');
+    document.getElementById('ledger').innerHTML=Object.entries(totals).sort((a,b)=>b[1]-a[1]).map(([c,h])=>`<div class="lrow" style="--c:var(${CATS[c].v})"><span class="lname">${CATS[c].name}</span><span class="bar"><i style="--w:${h/max*100}%"></i></span><span class="val">${h}h<small>${Math.round(h/168*100)}%</small></span></div>`).join('');
     document.getElementById('agenda').innerHTML='<h2>Daily details</h2>'+WEEK.map(([name,bs])=>`<details><summary>${name}</summary><ul>${bs.map(([s,e,c,label,det])=>`<li><strong>${s}–${e} · ${label}</strong>${det?' — '+det:''}</li>`).join('')}</ul></details>`).join('');
   }
   document.querySelectorAll('.switch input').forEach(el=>el.addEventListener('change',()=>{render();tick();}));
@@ -404,10 +430,10 @@
       nextEl.textContent = 'until ' + fmt(toMin(doing[1])) + (next ? ' · then ' + next[3] : ' · then sleep');
     } else if (min < DAY_START) {
       doingEl.textContent = 'Sleep'; doingEl.style.color = 'var(--muted)';
-      nextEl.textContent = 'wake at 07:00';
+      nextEl.textContent = 'wake at 04:00';
     } else {
       doingEl.textContent = 'Sleep'; doingEl.style.color = 'var(--muted)';
-      nextEl.textContent = 'day complete · wake 07:00';
+      nextEl.textContent = 'day complete · wake 04:00';
     }
 
     document.querySelectorAll('.blk.live').forEach(el => el.classList.remove('live'));
