@@ -273,67 +273,52 @@
     men:{name:'Men’s group',v:'--c-church'}, chores:{name:'Chores',v:'--c-quiet'},
     rest:{name:'Full rest',v:'--c-church'}, provisional:{name:'Provisional / unspecified',v:'--c-gap'}
   };
-  const morning = [
-    ['07:00','07:30','quiet','Ready + Mireya'],['07:30','08:00','quiet','Quiet time'],
-    ['08:00','10:30','deep','Deep work','Learning · audits · build plans · review']
-  ];
+  function morningFor(flexible=false) {
+    return [
+      ['00:00','04:00','sleep','Planned sleep'],
+      ...(flexible ? [['04:00','07:30','flex','Flexible morning','After late evening; no 04:00 obligation. Build 04:30–07:30 only if awake and rested; choose wake time. After date night, 23:30→06:30 = 7 hours.']] : [
+        ['04:00','04:30','quiet','Wake / ready / quiet'],['04:30','07:30','build','Build / offline']
+      ]),
+      ['07:30','08:00','family','Mireya / family','Assumption: morning care moves here'],
+      ['08:00','10:30','deep','Deep work','Learning · audits · build plans · review']
+    ];
+  }
+  const morning=morningFor();
   const base = [...morning,['10:30','11:00','social','Social'],['11:00','11:30','lunch','Lunch'],
     ['11:30','13:30','outreach','Outreach','100/day minimum · network / LinkedIn / Instagram / Facebook · no meetings']];
   const care = ['16:30','20:30','family','Care + family','Care for Mireya'];
-  const build = ['20:30','23:30','build','Build / offline'];
+  const ordinaryEvening=[['20:30','21:00','winddown','Wind down'],['21:00','24:00','sleep','Sleep','Target 21:00–04:00 = 7 hours; latest 21:30 = 6.5 hours']];
+  const dateEvening=[['20:30','23:30','date','Date night'],['23:30','24:00','sleep','Sleep after date night','Following morning is flexible; 23:30–06:30 gives 7 hours']];
   function makeWeek(dateNight=false) {
     const demos=['13:30','15:30','demos','Demos / meetings / sales','Fallback: outreach'];
     const fridayCare=(start,end)=>[start,end,'provisional','Jennifer’s half day / family','Half-day start/end and care coverage to agree · bath 17:00–17:30'];
-    const week = [
-      ['Monday',[...base,demos,['15:30','16:30','train','Gym'],[...care.slice(0,4),'Cook 16:30–17:30 while caring for Mireya'],build]],
+    return [
+      ['Monday',[...base,demos,['15:30','16:30','train','Gym'],[...care.slice(0,4),'Cook 16:30–17:30 while caring for Mireya'],...ordinaryEvening]],
       ['Tuesday',[...base,['13:30','15:00','demos','Demos / meetings / sales','Fallback: outreach'],
         ['15:00','18:00','family','Care + chores','Mireya · vacuum 15:00–16:00 · laundry 15:30–16:00 · bath 17:30–18:00'],
         ['18:00','20:00','train','Boxing + travel','Class 18:15–19:45'],['20:00','20:30','lunch','Dinner'],
-        dateNight?['20:30','23:30','date','Fortnightly date night']:build]],
-      ['Wednesday',[...morning,['10:30','13:00','webinar','Webinars / booking'],['13:00','13:30','lunch','Lunch'],demos,
-        ['15:30','16:30','chores','Bathroom chores'],...(dateNight?[care,build]:[
-          ['16:30','18:00','family','Care for Mireya'],['18:00','21:30','men','Men’s group','Mireya joins for part'],['21:30','23:30','build','Build / offline']])]],
-      ['Thursday',[...base,demos,['15:30','16:30','train','Gym'],[...care.slice(0,4),'Care for Mireya · laundry 16:30–17:00 · household kitchen chore 16:30–17:30 may overlap Jennifer’s time'],build]],
+        ...(dateNight?dateEvening:ordinaryEvening)]],
+      ['Wednesday',[...morningFor(dateNight),['10:30','13:00','webinar','Webinars / booking'],['13:00','13:30','lunch','Lunch'],demos,
+        ['15:30','16:30','chores','Bathroom chores'],...(dateNight?[care,...ordinaryEvening]:[
+          ['16:30','18:00','family','Care for Mireya'],['18:00','21:30','men','Men’s group','Mireya joins for part'],['21:30','24:00','sleep','Sleep after men’s group','Following Thursday morning is flexible; choose a rested wake time']])]],
+      ['Thursday',[...morningFor(!dateNight),...base.slice(morning.length),demos,['15:30','16:30','train','Gym'],[...care.slice(0,4),'Care for Mireya · laundry 16:30–17:00 · household kitchen chore 16:30–17:30 may overlap Jennifer’s time'],...ordinaryEvening]],
       ['Friday',[...base.slice(0,-1),...(dateNight?[
         base.at(-1),fridayCare('13:30','15:45'),['15:45','17:00','provisional','Gym (tentative)','Alternating Friday gym 15:45–17:00'],fridayCare('17:00','20:30')
       ]:[
         ['11:30','13:15','outreach','Outreach','Protected actual range 11:30–13:30 · 100/day minimum · no meetings'],
         ['13:15','13:30','conflict','Outreach / gym overlap','Outreach 11:30–13:30 overlaps tentative gym 13:15–14:30 by 15 minutes'],
         ['13:30','14:30','provisional','Gym (tentative)','Gym starts 13:15 · actual range 13:15–14:30; first 15 minutes conflict with outreach'],fridayCare('14:30','20:30')
-      ]),['20:30','23:30','date','Friday date night']]],
+      ]),...dateEvening]],
       ['Saturday',[
-        ['07:00','07:30','quiet','Ready + Mireya'],['07:30','08:00','quiet','Quiet time'],
+        ...morningFor(true).slice(0,-1),
         ['08:00','08:45','build','Check builds / calendar','Check overnight builds'],['08:45','10:15','train','Boxing'],
         ['10:15','10:30','provisional','Unassigned transition'],['10:30','11:30','lunch','Lunch'],
-        ['11:30','16:30','social','Social media shooting'],['16:30','23:30','provisional','Unscheduled']]],
+        ['11:30','16:30','social','Social media shooting'],['16:30','20:30','provisional','Unscheduled'],...ordinaryEvening]],
       ['Sunday',[
-        ['07:00','09:30','rest','Rest for both'],['09:30','11:00','church','Church'],['11:00','11:30','rest','Rest'],
+        ['00:00','07:00','sleep','Planned sleep'],['07:00','09:30','rest','Rest for both'],['09:30','11:00','church','Church'],['11:00','11:30','rest','Rest'],
         ['11:30','12:30','errands','Groceries'],['12:30','20:30','rest','Rest for both'],
-        ['20:30','21:00','planning','Weekly planning'],['21:00','23:30','rest','Rest for both']]]
+        ['20:30','21:00','planning','Weekly planning'],['21:00','24:00','sleep','Sleep']]]
     ];
-    return week.map(([name,blocks],i)=>{
-      const flexible=i===5 || i===(dateNight?2:3);
-      const revised=i===6 ? blocks : [
-        ['04:00','04:30','quiet','Wake / ready / quiet'],
-        ['04:30','07:30','build','Build / offline'],
-        ['07:30','08:00','family','Mireya / family','Assumption: morning care moves here'],
-        ...blocks.filter(b=>b[0]>='08:00')
-      ];
-      const evening=revised.flatMap(b=>b[2]==='build'&&b[0]>='20:30' ? (
-        b[0]==='20:30' ? [['20:30','21:00','winddown','Wind down'],['21:00','24:00','sleep','Sleep','Target 21:00–04:00 = 7 hours; latest 21:30 = 6.5 hours']]
-        : [['21:30','24:00','sleep','Sleep after men’s group','Following Thursday morning is flexible; choose a rested wake time']]
-      ) : [b]);
-      if(i===5) {
-        evening[evening.length-1]=['16:30','20:30','provisional','Unscheduled'];
-        evening.push(['20:30','21:00','winddown','Wind down'],['21:00','24:00','sleep','Sleep']);
-      } else if(i===6) evening[evening.length-1]=['21:00','24:00','sleep','Sleep'];
-      else if(evening.at(-1)[2]==='date') evening.push(['23:30','24:00','sleep','Sleep after date night','Following morning is flexible; 23:30–06:30 gives 7 hours']);
-      const planned=flexible ? [
-        ['04:00','07:30','flex','Flexible morning','After late evening; no 04:00 obligation. Build 04:30–07:30 only if awake and rested; choose wake time. After date night, 23:30→06:30 = 7 hours.'],
-        ...evening.filter(b=>b[0]>='07:30')
-      ] : evening;
-      return [name,[['00:00',i===6?'07:00':'04:00','sleep','Planned sleep'],...planned]];
-    });
   }
   // Calendar-day arithmetic avoids a DST change shifting the alternating week.
   function patternForDate(date) {
